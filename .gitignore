@@ -1,0 +1,33 @@
+# Ignore Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore environment files
+.env
+
+# Ignore Docker-related files
+*.log
+*.pid
+
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+*$py.class
+
+# Ignore OS/macOS system files
+.DS_Store
+Thumbs.db
+
+# Ignore virtual environment folders (if any)
+env/
+venv/
+ENV/
+.venv/
+
+# Ignore IDE/editor configs
+.vscode/
+.idea/
+
+# Ignore database volume (if mounted locally)
+data/

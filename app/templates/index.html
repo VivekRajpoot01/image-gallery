@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Uploader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .img-info {
+            display: none;
+            /*background: rgba(0, 0, 0, 0.7);
+            */
+            color: black;
+            padding: 4px;
+            border-radius: 5px;
+            font-size: 14px;
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+        }
+
+        .card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover .img-info {
+            display: block;
+        }
+
+        #progress-container {
+            margin-top: 15px;
+            display: none;
+        }
+
+        #progress-bar {
+            width: 100%;
+        }
+
+        #progress-text {
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Image Upload Gallery</h1>
+    </header>
+    <div class="container">
+        <form id="upload-form">
+            <input type="file" name="image" id="image-input">
+            <button type="submit">Upload</button>
+        </form>
+
+        <div id="progress-container">
+            <progress id="progress-bar" value="0" max="100"></progress>
+            <p id="progress-text">0%</p>
+        </div>
+
+        <div id="result" style="margin-top: 20px;"></div>
+        <h2>Uploaded Images</h2>
+        <div class="gallery">
+            {% for img in images %}
+                <div class="card">
+                    <img src="{{ img.s3_url }}" alt="{{ img.filename }}" />
+                    <div class="img-info">
+                        {{ img.filename }} <br>
+                        ({{ img.upload_time.strftime('%Y-%m-%d %H:%M') }})
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('image-input');
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const xhr = new XMLHttpRequest();
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const resultDiv = document.getElementById('result');
+
+            xhr.upload.addEventListener('progress', function (e) {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.value = percent;
+                    progressText.textContent = percent + '%';
+                    progressContainer.style.display = 'block';
+                }
+            });
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    const result = JSON.parse(xhr.responseText);
+                    resultDiv.innerHTML = `
+                        <p><strong>Uploaded Successfully!</strong></p>
+                        <img src="${result.url}" alt="Uploaded Image" style="max-width: 400px; margin-top: 10px; border: 1px solid #ccc;" />
+                        <p><a href="${result.url}" target="_blank">Open in New Tab</a></p>
+                    `;
+                    fileInput.value = '';
+                    location.reload();  // Refresh page to show new image
+                } else {
+                    resultDiv.innerHTML = `<p style="color:red;">Upload failed: ${xhr.statusText}</p>`;
+                }
+
+                progressContainer.style.display = 'none';
+                progressBar.value = 0;
+                progressText.textContent = '0%';
+            };
+
+            xhr.onerror = function () {
+                resultDiv.innerHTML = `<p style="color:red;">Upload error occurred.</p>`;
+                progressContainer.style.display = 'none';
+            };
+
+            xhr.open('POST', '/upload');
+            xhr.send(formData);
+        });
+    </script>
+</body>
+</html>
