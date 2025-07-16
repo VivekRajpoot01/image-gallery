@@ -9,3 +9,6 @@ docker-compose up --build
 3. Visit `http://localhost:5000` to upload an image.
 
 Ensure your AWS IAM user and S3 bucket are set correctly.
+
+## 📸 Screenshot
+![Image Upload Gallery UI](./image-upload-gallery.png)
